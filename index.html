@@ -1,1606 +1,182 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live Score 3D</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive dragon</title>
+    <style>
+        body,
+        html {
+            position: absolute;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: rgb(60, 97, 153);
+            touch-action: none;
+        }
 
-  :root {
-    --navy: #1b2a41; --navy-soft: #24354f; --gold: #e8b93b;
-    --cream: #f0ede5; --ink: #2b2b2b; --muted: #7a7a7a;
-    --line: #d8d2c5; --green: #2e7d4f; --red: #d93535;
-    --card-bg: #fff; --sub-bg: #f7f4ec; --input-bg: #fff;
-    --shadow-3d: 0 8px 20px rgba(27,42,65,0.18), 0 3px 6px rgba(27,42,65,0.1);
-    --accent: var(--navy);
-  }
-
-  body.theme-dark {
-    --cream: #0d1420; --ink: #e8ecf1; --muted: #8a97a5;
-    --line: #253041; --card-bg: #1a2433; --sub-bg: #121b26; --input-bg: #0d1420;
-    --shadow-3d: 0 8px 20px rgba(0,0,0,0.5), 0 3px 6px rgba(0,0,0,0.4);
-    --accent: var(--gold);
-  }
-  body.theme-dark .header { background: linear-gradient(135deg, #0a1018, #1a2433); }
-
-  body.theme-neon {
-    --cream: #05071a; --ink: #e0e7ff; --muted: #7d8bbd;
-    --line: #1e2a5a; --card-bg: #0f1530; --sub-bg: #0a1024; --input-bg: #05071a;
-    --navy: #00d4ff; --navy-soft: #0a1a3a; --gold: #00ffaa;
-    --green: #00ff88; --red: #ff3366;
-    --shadow-3d: 0 8px 20px rgba(0,212,255,0.25), 0 3px 6px rgba(0,212,255,0.15);
-    --accent: #00ffaa;
-  }
-  body.theme-neon { background: radial-gradient(ellipse at top, #1a0b3d 0%, #0a0e27 50%, #05071a 100%); background-attachment: fixed; }
-  body.theme-neon .header { background: linear-gradient(135deg, #1a0b3d, #0a0e27); border: 1px solid #00d4ff; box-shadow: 0 0 20px rgba(0,212,255,0.3); }
-  body.theme-neon .brand-text .title { color: #00ffaa; text-shadow: 0 0 10px rgba(0,255,170,0.7); }
-  body.theme-neon .live-badge { border-color: #00d4ff; }
-  body.theme-neon .scoreboard,
-  body.theme-neon .cheer-section,
-  body.theme-neon .live-chat,
-  body.theme-neon .card-box,
-  body.theme-neon .sound-box { border: 1px solid #00d4ff; box-shadow: 0 0 15px rgba(0,212,255,0.2); }
-  body.theme-neon .tournament-name,
-  body.theme-neon .cheer-head,
-  body.theme-neon .live-chat-header { background: rgba(0,212,255,0.08); color: #00ffaa; border-color: rgba(0,212,255,0.3); }
-  body.theme-neon .team .tname { color: #e0e7ff; }
-  body.theme-neon .team .tscore { color: #00ffaa; text-shadow: 0 0 20px rgba(0,255,170,0.8); }
-  body.theme-neon .team-a .crest { background: linear-gradient(135deg, #00d4ff, #0088cc); color: #0a0e27; box-shadow: 0 0 15px rgba(0,212,255,0.6), inset 0 -4px 0 rgba(0,0,0,0.3); }
-  body.theme-neon .team-b .crest { background: linear-gradient(135deg, #00ffaa, #00cc88); color: #0a0e27; box-shadow: 0 0 15px rgba(0,255,170,0.6), inset 0 -4px 0 rgba(0,0,0,0.3); }
-  body.theme-neon .timer-row { background: linear-gradient(90deg, #0a1a3a, #1a0b3d); border: 1px solid rgba(0,212,255,0.4); }
-  body.theme-neon .timer-row .tval { color: #00ffaa; text-shadow: 0 0 12px rgba(0,255,170,0.8); }
-  body.theme-neon .cheer-btn2 { background: rgba(0,212,255,0.08); border-color: rgba(0,212,255,0.35); color: #e0e7ff; }
-  body.theme-neon .chat-list { background: rgba(10,15,40,0.4); }
-  body.theme-neon .chat-form { background: transparent; }
-  body.theme-neon .chat-form input { background: var(--input-bg); color: #fff; border-color: rgba(0,212,255,0.35); }
-  body.theme-neon .bottom-nav { background: rgba(10,15,40,0.95); border-color: #00d4ff; }
-  body.theme-neon .nav-item.active { color: #00ffaa; text-shadow: 0 0 10px rgba(0,255,170,0.8); }
-  body.theme-neon .game-tab.active { background: #00d4ff; color: #0a0e27; border-color: #00d4ff; box-shadow: 0 0 12px rgba(0,212,255,0.5); }
-  body.theme-neon .parlay-btn { background: linear-gradient(135deg, #00d4ff, #00aacc); color: #0a0e27; box-shadow: 0 0 15px rgba(0,212,255,0.4); }
-  body.theme-neon .parlay-live-score { background: rgba(0,212,255,0.08); border-color: rgba(0,212,255,0.35); }
-  body.theme-neon .parlay-live-score .sc { color: #00ffaa; }
-  body.theme-neon .tap-area { background: rgba(0,212,255,0.06); border-color: rgba(0,212,255,0.4); }
-  body.theme-neon .mem-card { background: linear-gradient(135deg, #0a1a3a, #1a0b3d); border: 1px solid rgba(0,212,255,0.4); }
-  body.theme-neon .sound-row { border-color: rgba(0,212,255,0.2); }
-  body.theme-neon .sound-row .lbl { color: #e0e7ff; }
-  body.theme-neon .switch input:checked + .slider-sw { background: #00ffaa; box-shadow: 0 0 10px rgba(0,255,170,0.6); }
-  body.theme-neon .footer strong { color: #00ffaa; }
-
-  body {
-    background: var(--cream); color: var(--ink);
-    min-height: 100vh; display: flex; justify-content: center;
-    align-items: flex-start; padding: 16px 14px 100px;
-    font-size: 14px; overflow-x: hidden;
-    transition: background .3s, color .3s;
-    perspective: 1200px;
-  }
-
-  /* ===== LOADING ===== */
-  #loading {
-    position: fixed; inset: 0; background: var(--navy); color: #fff;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    z-index: 9999; transition: opacity .5s, visibility .5s;
-  }
-  #loading.hide { opacity: 0; visibility: hidden; pointer-events: none; }
-  .ld-ball {
-    width: 60px; height: 60px; border-radius: 50%;
-    background: radial-gradient(circle at 30% 25%, #ffe888, #e8b93b 40%, #b8860b 100%);
-    position: relative;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset -8px -8px 20px rgba(0,0,0,0.3);
-    animation: bounce .9s ease-in-out infinite;
-  }
-  .ld-ball::before {
-    content: ''; position: absolute; inset: 16px; border-radius: 50%;
-    background: var(--navy);
-  }
-  @keyframes bounce {
-    0%,100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
-  }
-  .ld-title {
-    margin-top: 28px; font-size: 20px; font-weight: 800;
-    letter-spacing: 5px;
-    text-shadow: 0 3px 10px rgba(0,0,0,0.5);
-  }
-  .ld-made-by {
-    margin-top: 10px;
-    font-size: 13px; font-weight: 700;
-    letter-spacing: 3px;
-    color: var(--gold);
-    text-transform: uppercase;
-    text-shadow: 0 0 12px rgba(232,185,59,0.6);
-  }
-  .ld-bar {
-    margin-top: 24px; width: 200px; height: 4px;
-    background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden;
-  }
-  .ld-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), #fff); animation: fill 1.8s ease forwards; }
-  @keyframes fill { to { width: 100%; } }
-
-  .wrap { width: 100%; max-width: 720px; }
-
-  /* ===== HEADER ===== */
-  .header {
-    background: linear-gradient(135deg, var(--navy), var(--navy-soft));
-    border-radius: 16px; padding: 16px 20px;
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 18px; color: #fff;
-    box-shadow: var(--shadow-3d);
-    transition: transform .3s;
-  }
-  .header:hover { transform: translateY(-2px); }
-  .brand { display: flex; align-items: center; gap: 12px; }
-  .logo {
-    width: 44px; height: 44px; flex-shrink: 0;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
-  }
-  .brand-text .title { font-size: 15px; font-weight: 800; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-  .brand-text .sub { font-size: 10px; color: #b9c4d4; letter-spacing: 2px; text-transform: uppercase; }
-  .live-badge {
-    display: flex; align-items: center; gap: 6px;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    padding: 6px 12px; border-radius: 6px;
-    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-  }
-  .live-badge .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #ff4d4d;
-    box-shadow: 0 0 8px #ff4d4d;
-    animation: livePulse 1.4s infinite;
-  }
-  @keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-  .live-badge .dot.stale { background: #c49a00; box-shadow: 0 0 8px #c49a00; }
-  .live-badge .dot.off { background: #666; box-shadow: none; animation: none; }
-  .live-badge .dot.finished { background: var(--gold); box-shadow: 0 0 8px var(--gold); animation: none; }
-
-  /* ===== SKOR ===== */
-  .scoreboard {
-    background: var(--card-bg);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: var(--shadow-3d);
-    margin-bottom: 16px;
-    transition: transform .3s;
-    position: relative;
-  }
-  .scoreboard::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, var(--navy), var(--gold), var(--navy));
-  }
-  .tournament-name {
-    text-align: center; padding: 12px 16px;
-    font-size: 12px; color: var(--muted);
-    border-bottom: 1px solid var(--line);
-    background: var(--sub-bg);
-    letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700;
-    min-height: 42px; display: flex; align-items: center; justify-content: center;
-  }
-  .team-row { display: flex; align-items: stretch; }
-  .team { flex: 1; padding: 32px 18px; text-align: center; }
-  .team-a { border-right: 1px solid var(--line); }
-  .team .crest {
-    width: 64px; height: 64px; margin: 0 auto 14px;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 26px;
-    transition: transform .3s;
-  }
-  .team:hover .crest { transform: scale(1.06); }
-  .team-a .crest {
-    background: linear-gradient(135deg, #3b5678, var(--navy));
-    color: #fff;
-    box-shadow: 0 6px 12px rgba(27,42,65,0.35), inset 0 -4px 0 rgba(0,0,0,0.25);
-  }
-  .team-b .crest {
-    background: linear-gradient(135deg, #ffe888, var(--gold));
-    color: var(--navy);
-    box-shadow: 0 6px 12px rgba(232,185,59,0.35), inset 0 -4px 0 rgba(0,0,0,0.2);
-  }
-  .team .tname {
-    font-size: 14px; font-weight: 700; margin-bottom: 12px;
-    word-break: break-word; min-height: 20px;
-  }
-  .team .tscore {
-    font-size: 68px; font-weight: 900;
-    color: var(--navy);
-    font-family: "Courier New", monospace;
-    line-height: 1;
-    display: inline-block;
-    transition: transform .25s, color .25s;
-    text-shadow: 0 3px 0 rgba(0,0,0,0.06);
-    will-change: transform;
-  }
-  body.theme-dark .team .tscore { color: #fff; }
-  .team .tscore.pop { transform: scale(1.35); color: var(--gold); }
-
-  .timer-row {
-    background: linear-gradient(90deg, var(--navy), var(--navy-soft), var(--navy));
-    color: #fff; padding: 16px; text-align: center;
-  }
-  .timer-row .tlabel {
-    font-size: 10px; letter-spacing: 2px;
-    text-transform: uppercase; color: #b9c4d4;
-    margin-bottom: 6px;
-  }
-  .timer-row .tval {
-    font-family: "Courier New", monospace;
-    font-size: 30px; font-weight: 800;
-    color: var(--gold);
-    letter-spacing: 3px;
-    text-shadow: 0 0 12px rgba(232,185,59,0.5);
-  }
-
-  /* ===== BANNER KOMENTATOR ===== */
-  #commentatorBanner {
-    position: fixed; top: 20px; left: 50%;
-    transform: translateX(-50%) translateY(-120%);
-    background: linear-gradient(135deg, var(--navy), var(--navy-soft));
-    color: #fff;
-    padding: 14px 24px;
-    border-radius: 14px;
-    font-size: 13px; font-weight: 600;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-    z-index: 9997;
-    max-width: 90%;
-    text-align: center;
-    border-left: 5px solid var(--gold);
-    transition: transform .4s cubic-bezier(.3,.9,.4,1);
-    pointer-events: none;
-  }
-  #commentatorBanner.show { transform: translateX(-50%) translateY(0); }
-
-  /* ===== TOAST ===== */
-  #toast {
-    position: fixed; bottom: 100px; left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--navy); color: #fff;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-size: 13px; font-weight: 600;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    z-index: 9998;
-    opacity: 0; pointer-events: none;
-    transition: all .3s;
-    border-left: 4px solid var(--gold);
-  }
-  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* ===== SORAK ===== */
-  .cheer-section {
-    background: var(--card-bg);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    overflow: hidden;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow-3d);
-  }
-  .cheer-head {
-    padding: 12px 16px;
-    background: var(--sub-bg);
-    border-bottom: 1px solid var(--line);
-    font-size: 12px; font-weight: 800;
-    color: var(--navy);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  body.theme-dark .cheer-head { color: var(--gold); }
-  .cheer-head .total { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: 0; text-transform: none; }
-  .cheer-body {
-    padding: 14px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-  .cheer-btn2 {
-    padding: 14px 8px;
-    border-radius: 12px;
-    border: 1px solid var(--line);
-    background: var(--sub-bg);
-    cursor: pointer;
-    font-size: 11px; font-weight: 600;
-    color: var(--ink);
-    transition: transform .12s, box-shadow .12s;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.08);
-    position: relative;
-  }
-  .cheer-btn2:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.1); }
-  .cheer-btn2:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.08); }
-  .cheer-btn2 .em { display: block; font-size: 26px; margin-bottom: 4px; }
-
-  /* ===== ANIMASI ===== */
-  .ball-fly {
-    position: fixed; font-size: 42px;
-    pointer-events: none; z-index: 9998;
-    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.3));
-    will-change: transform, opacity;
-  }
-  .particle {
-    position: fixed; pointer-events: none; z-index: 9998;
-    font-size: 24px;
-    animation: burst .9s ease-out forwards;
-    will-change: transform, opacity;
-  }
-  @keyframes burst {
-    0% { opacity: 1; transform: translate(-50%, -50%) scale(.5); }
-    100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.4); }
-  }
-  .confetti {
-    position: fixed; width: 8px; height: 12px;
-    pointer-events: none; z-index: 9996;
-    animation: confettiFall 2s ease-out forwards;
-    border-radius: 2px;
-    will-change: transform, opacity;
-  }
-  @keyframes confettiFall {
-    0% { opacity: 1; transform: translateY(0) rotate(0); }
-    100% { opacity: 0; transform: translateY(90vh) rotate(540deg); }
-  }
-  .emoji-float {
-    position: fixed; font-size: 36px;
-    pointer-events: none; z-index: 9997;
-    animation: floatUp 1.2s ease-out forwards;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-    will-change: transform, opacity;
-  }
-  @keyframes floatUp {
-    0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -180px) scale(1.5); }
-  }
-
-  /* ===== NAV ===== */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--card-bg);
-    border-top: 1px solid var(--line);
-    display: flex; z-index: 50;
-    box-shadow: 0 -4px 15px rgba(0,0,0,0.08);
-  }
-  .bottom-nav .nav-item {
-    flex: 1; text-align: center;
-    padding: 12px 4px 14px;
-    font-size: 10px; color: var(--muted);
-    cursor: pointer;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    transition: color .2s;
-  }
-  .bottom-nav .nav-item .ico {
-    font-size: 20px; line-height: 1;
-    transition: transform .2s;
-  }
-  .bottom-nav .nav-item.active { color: var(--accent); font-weight: 700; }
-  .bottom-nav .nav-item.active .ico { transform: scale(1.15); }
-  body.theme-dark .bottom-nav .nav-item.active { color: var(--gold); }
-
-  /* ===== PANEL ===== */
-  .panel { display: none; }
-  .panel.active { display: block; animation: fadeIn .25s; }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .card-box {
-    background: var(--card-bg);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    padding: 22px;
-    box-shadow: var(--shadow-3d);
-  }
-  .card-title { font-size: 15px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
-  body.theme-dark .card-title { color: var(--gold); }
-  .card-desc { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
-
-  /* ===== GAME TABS ===== */
-  .game-tabs {
-    display: flex; gap: 8px;
-    margin-bottom: 16px; overflow-x: auto;
-    padding-bottom: 4px;
-  }
-  .game-tab {
-    padding: 10px 18px;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    background: var(--card-bg);
-    cursor: pointer;
-    font-size: 12px; font-weight: 700;
-    color: var(--muted);
-    white-space: nowrap;
-    transition: transform .15s, box-shadow .15s;
-    box-shadow: 0 3px 0 rgba(0,0,0,0.06);
-  }
-  .game-tab:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.06); }
-  .game-tab.active {
-    background: var(--navy); color: #fff;
-    border-color: var(--navy);
-    box-shadow: 0 3px 0 rgba(0,0,0,0.2);
-  }
-  .game-panel { display: none; }
-  .game-panel.active { display: block; animation: fadeIn .25s; }
-
-  /* ===== STATS ===== */
-  .game-stats { display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; }
-  .game-stat {
-    background: var(--sub-bg);
-    border: 1px solid var(--line);
-    padding: 10px 16px;
-    border-radius: 10px;
-    min-width: 90px;
-    text-align: center;
-    box-shadow: inset 0 -2px 0 rgba(0,0,0,0.05);
-  }
-  .game-stat .lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
-  .game-stat .val { font-size: 22px; font-weight: 900; color: var(--navy); font-family: "Courier New", monospace; margin-top: 2px; }
-  body.theme-dark .game-stat .val { color: var(--gold); }
-
-  /* ===== TAP ===== */
-  .tap-area {
-    width: 100%; height: 200px;
-    border-radius: 20px;
-    border: 2px dashed var(--line);
-    background: var(--sub-bg);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column;
-    cursor: pointer; user-select: none;
-    transition: transform .1s;
-    box-shadow: inset 0 -6px 0 rgba(0,0,0,0.05), 0 6px 14px rgba(0,0,0,0.08);
-  }
-  .tap-area:active { transform: scale(0.98); }
-  .tap-area .big { font-size: 56px; margin-bottom: 8px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); }
-  .tap-area .txt { font-size: 13px; color: var(--muted); font-weight: 600; }
-  .game-timeleft { margin-top: 14px; font-size: 13px; color: var(--muted); text-align: center; font-weight: 600; }
-  .game-timeleft strong { color: var(--navy); font-family: "Courier New", monospace; font-size: 15px; }
-  body.theme-dark .game-timeleft strong { color: var(--gold); }
-
-  /* ===== PARLAY ===== */
-  .parlay-live-score {
-    text-align: center;
-    background: var(--sub-bg);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 16px;
-  }
-  .parlay-live-score .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; font-weight: 700; }
-  .parlay-live-score .sc { font-family: "Courier New", monospace; font-size: 26px; font-weight: 900; color: var(--navy); }
-  body.theme-dark .parlay-live-score .sc { color: var(--gold); }
-  .parlay-form { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 18px 0; }
-  .parlay-input {
-    width: 90px; padding: 14px;
-    font-size: 28px; font-weight: 900;
-    text-align: center;
-    border: 2px solid var(--line);
-    border-radius: 12px;
-    font-family: "Courier New", monospace;
-    outline: none;
-    background: var(--input-bg);
-    color: var(--ink);
-    transition: border-color .2s;
-  }
-  .parlay-input:focus { border-color: var(--gold); }
-  .parlay-vs { font-size: 20px; font-weight: 900; color: var(--muted); }
-  .parlay-btn {
-    display: block; margin: 0 auto;
-    padding: 14px 32px;
-    border-radius: 12px;
-    border: none;
-    background: linear-gradient(135deg, var(--navy), var(--navy-soft));
-    color: #fff;
-    cursor: pointer;
-    font-size: 14px; font-weight: 700;
-    box-shadow: 0 5px 0 rgba(0,0,0,0.2);
-    transition: transform .12s, box-shadow .12s;
-  }
-  .parlay-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 rgba(0,0,0,0.2); }
-  .parlay-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
-  .parlay-btn:disabled { background: #999; cursor: not-allowed; transform: none; box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
-  .parlay-result {
-    margin-top: 18px; padding: 18px;
-    border-radius: 12px;
-    font-size: 13px;
-    text-align: center;
-    display: none;
-    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.08);
-  }
-  .parlay-result.show { display: block; animation: fadeIn .4s; }
-  .parlay-result.win { background: #e6f4ea; color: var(--green); border: 1px solid #b7dfc3; }
-  .parlay-result.lose { background: #fdecec; color: var(--red); border: 1px solid #f5c2c2; }
-  .parlay-result.wait { background: #fff8e1; color: #c49a00; border: 1px solid #f5e5b3; }
-  body.theme-dark .parlay-result.win { background: rgba(46,125,79,0.2); border-color: rgba(46,125,79,0.4); }
-  body.theme-dark .parlay-result.lose { background: rgba(217,53,53,0.2); border-color: rgba(217,53,53,0.4); }
-  body.theme-dark .parlay-result.wait { background: rgba(196,154,0,0.2); border-color: rgba(196,154,0,0.4); }
-  .parlay-my { text-align: center; font-size: 12px; color: var(--muted); margin-top: 12px; font-weight: 600; }
-  .parlay-my strong { color: var(--navy); }
-  body.theme-dark .parlay-my strong { color: var(--gold); }
-
-  /* ===== MEMORY ===== */
-  .memory-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    max-width: 380px;
-    margin: 18px auto;
-  }
-  .mem-card {
-    aspect-ratio: 1;
-    border-radius: 12px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 32px;
-    transition: transform .35s, background .35s;
-    user-select: none;
-    background: linear-gradient(135deg, var(--navy), var(--navy-soft));
-    color: #fff;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2), inset 0 -3px 0 rgba(0,0,0,0.2);
-    transform-style: preserve-3d;
-  }
-  .mem-card:hover:not(.flipped):not(.matched) { transform: translateY(-2px); }
-  .mem-card.flipped {
-    transform: rotateY(180deg);
-    background: #fff;
-    border: 3px solid var(--gold);
-    color: var(--ink);
-  }
-  .mem-card.matched {
-    background: linear-gradient(135deg, #c7f2d4, #a8e6c0);
-    border: 3px solid var(--green);
-    transform: rotateY(180deg) scale(0.95);
-    opacity: 0.85;
-  }
-
-  .btn-reset-game {
-    display: block; margin: 16px auto 0;
-    padding: 10px 20px;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    background: var(--card-bg);
-    cursor: pointer;
-    font-size: 12px; font-weight: 600;
-    color: var(--muted);
-    box-shadow: 0 3px 0 rgba(0,0,0,0.06);
-    transition: transform .12s, box-shadow .12s;
-  }
-  .btn-reset-game:hover { transform: translateY(-2px); box-shadow: 0 5px 0 rgba(0,0,0,0.08); }
-  .btn-reset-game:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.06); }
-
-  /* ===== SOUND ===== */
-  .sound-box {
-    background: var(--card-bg);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: var(--shadow-3d);
-  }
-  .sound-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
-  .sound-row:last-child { border-bottom: none; }
-  .sound-row .lbl { font-size: 13px; font-weight: 700; color: var(--ink); }
-  .sound-row .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .switch { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .slider-sw {
-    position: absolute; inset: 0;
-    background: #ccc; border-radius: 26px;
-    cursor: pointer;
-    transition: background .25s;
-  }
-  .slider-sw::before {
-    content: '';
-    position: absolute;
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    background: #fff;
-    left: 3px; top: 3px;
-    transition: transform .25s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  }
-  .switch input:checked + .slider-sw { background: var(--green); }
-  .switch input:checked + .slider-sw::before { transform: translateX(22px); }
-
-  /* ===== THEME PICKER ===== */
-  .theme-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-top: 12px;
-  }
-  .theme-card {
-    padding: 14px 10px;
-    border-radius: 12px;
-    border: 2px solid var(--line);
-    cursor: pointer;
-    text-align: center;
-    font-size: 12px; font-weight: 700;
-    transition: transform .2s, border-color .2s, box-shadow .2s;
-    background: var(--card-bg);
-    color: var(--ink);
-  }
-  .theme-card:hover { transform: translateY(-3px); }
-  .theme-card.active {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px var(--gold);
-    transform: scale(1.02);
-  }
-  .theme-card .tname { margin-top: 8px; }
-  .theme-preview {
-    width: 100%; height: 44px;
-    border-radius: 8px;
-    margin-bottom: 6px;
-    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15);
-  }
-  .theme-preview.light { background: linear-gradient(135deg, #f0ede5 50%, #fff 50%); border: 1px solid #ddd; }
-  .theme-preview.dark { background: linear-gradient(135deg, #0d1420 50%, #1a2433 50%); border: 1px solid #253041; }
-  .theme-preview.neon { background: linear-gradient(135deg, #0a0e27 50%, #0a1a3a 50%); border: 1px solid #00d4ff; }
-
-  /* ===== CHAT ===== */
-  .live-chat {
-    background: var(--card-bg);
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    overflow: hidden;
-    display: flex; flex-direction: column;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow-3d);
-  }
-  .live-chat-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--line);
-    display: flex; justify-content: space-between; align-items: center;
-    background: var(--sub-bg);
-  }
-  .live-chat-header .ttl { font-size: 12px; font-weight: 800; color: var(--navy); letter-spacing: 1px; text-transform: uppercase; }
-  body.theme-dark .live-chat-header .ttl { color: var(--gold); }
-  .live-chat-header .live-indicator {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 10px; color: var(--red);
-    font-weight: 800; letter-spacing: 1.5px;
-  }
-  .live-chat-header .live-indicator::before {
-    content: ''; width: 7px; height: 7px;
-    border-radius: 50%; background: var(--red);
-    box-shadow: 0 0 8px var(--red);
-    animation: blink 1.4s infinite;
-  }
-  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-  .chat-list {
-    height: 220px; overflow-y: auto;
-    padding: 12px 14px;
-    display: flex; flex-direction: column; gap: 8px;
-    background: var(--sub-bg);
-  }
-  .chat-item {
-    font-size: 12.5px; line-height: 1.45;
-    word-break: break-word;
-    padding: 6px 10px;
-    border-radius: 10px;
-    background: var(--card-bg);
-    border: 1px solid var(--line);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    align-self: flex-start;
-    max-width: 88%;
-  }
-  .chat-item.mine { align-self: flex-end; background: rgba(232,185,59,0.15); }
-  .chat-item.is-admin { background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-left: 3px solid var(--red); }
-  body.theme-dark .chat-item.is-admin { background: rgba(217,53,53,0.2); }
-  .chat-item .uname { font-weight: 800; color: var(--navy); margin-right: 4px; }
-  body.theme-dark .chat-item .uname { color: #8ec5ff; }
-  .chat-item.is-admin .uname { color: var(--red); }
-  .chat-item .utext { color: var(--ink); }
-  .chat-item .utime { font-size: 9px; color: var(--muted); margin-left: 6px; }
-  .chat-empty { text-align: center; font-size: 12px; color: var(--muted); padding: 40px 0; font-weight: 600; }
-  .chat-form {
-    display: flex; gap: 8px; padding: 10px;
-    border-top: 1px solid var(--line);
-    background: var(--card-bg);
-  }
-  .chat-form input.msg-in {
-    flex: 1; padding: 12px 16px;
-    border: 1px solid var(--line);
-    border-radius: 22px;
-    font-size: 13px; outline: none;
-    background: var(--input-bg);
-    color: var(--ink);
-  }
-  .chat-form input:focus { border-color: var(--gold); }
-  .chat-form .send-btn {
-    width: 42px; height: 42px;
-    border-radius: 50%; border: none;
-    background: linear-gradient(135deg, var(--navy), var(--navy-soft));
-    color: #fff; cursor: pointer;
-    font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 3px 0 rgba(0,0,0,0.2);
-    transition: transform .12s, box-shadow .12s;
-  }
-  .chat-form .send-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
-
-  .footer { text-align: center; margin-top: 24px; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
-  .footer strong { color: var(--navy); }
-  body.theme-dark .footer strong { color: var(--gold); }
-
-  /* Ringan mode - matikan animasi berat */
-  body.lite-mode * {
-    animation-duration: 0s !important;
-    transition-duration: 0.1s !important;
-  }
-  body.lite-mode .particle,
-  body.lite-mode .confetti { display: none !important; }
-
-  @media (max-width: 480px) {
-    .team .tscore { font-size: 54px; }
-    .team .crest { width: 54px; height: 54px; font-size: 22px; }
-    .team { padding: 24px 12px; }
-    .game-stats { flex-wrap: wrap; }
-    .cheer-body { grid-template-columns: repeat(2, 1fr); }
-  }
-</style>
+        svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #c9c9c9;
+            cursor: pointer;
+            filter: sepia(20%);
+        }
+    </style>
 </head>
-<body class="theme-light">
-
-<div id="loading">
-  <div class="ld-ball"></div>
-  <div class="ld-title">LIVE SCORE</div>
-  <div class="ld-made-by">Made By Alfieno</div>
-  <div class="ld-bar"><div class="ld-fill"></div></div>
-</div>
-
-<div id="commentatorBanner"></div>
-<div id="toast"></div>
-
-<div class="wrap">
-
-  <div class="header">
-    <div class="brand">
-      <svg class="logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+<body>
+    <svg>
         <defs>
-          <radialGradient id="ballGrad" cx="35%" cy="30%">
-            <stop offset="0%" stop-color="#ffe888"/>
-            <stop offset="50%" stop-color="#e8b93b"/>
-            <stop offset="100%" stop-color="#b8860b"/>
-          </radialGradient>
+            <g id="Cabeza" transform="matrix(1, 0, 0, 1, 0, 0)">
+                <path
+                    style="fill: #ffffff; fill-opacity: 1"
+                    d="M-28.9,-1.1L-28.55 -1.95Q-28.1 -3.1 -27.25 -2.95L-26.7 -2.95Q-27.7 -1.65 -28.9 -1.1M-18.35,-1.8Q-15.1 -10.3 -9.6 -6.05Q-15.1 -6.2 -18.35 -1.8M-18.35,1.1Q-15.1 5.45 -9.6 5.35Q-15.1 9.55 -18.35 1.1M-26.7,2.2L-27.25 2.25Q-28.1 2.4 -28.55 1.2L-28.9 0.35Q-27.7 0.9 -26.7 2.2"
+                />
+                <path
+                    style="fill: #000000; fill-opacity: 1"
+                    d="M-21.05,-8.25Q-13.6 -15.95 -1.3 -12.1Q-7.85 -8.5 -5.85 -4.35Q-2.3 -4.85 10.5 0.15Q0 4.35 -5.85 3.65Q-7.85 7.75 -1.25 12.45Q-13.6 15.2 -21.05 7.5Q-29.55 4.05 -30.2 -0.35Q-29.55 -4.8 -21.05 -8.25M-26.7,-2.95L-27.25 -2.95Q-28.1 -3.1 -28.55 -1.95L-28.9 -1.1Q-27.7 -1.65 -26.7 -2.95M-9.6,-6.05Q-15.1 -10.3 -18.35 -1.8Q-15.1 -6.2 -9.6 -6.05M-9.6,5.35Q-15.1 5.45 -18.35 1.1Q-15.1 9.55 -9.6 5.35M-28.9,0.35L-28.55 1.2Q-28.1 2.4 -27.25 2.25L-26.7 2.2Q-27.7 0.9 -28.9 0.35"
+                />
+            </g>
+            <g id="Aletas" transform="matrix(1, 0, 0, 1, 0, 0)">
+                <linearGradient
+                    id="LinearGradID_1"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="matrix(0.0935974, 0, 0, 0.188782, -20.55, 0)"
+                    spreadMethod="pad"
+                    x1="-819.2"
+                    y1="0"
+                    x2="819.2"
+                    y2="0"
+                >
+                    <stop offset="0" style="stop-color: #cccccc; stop-opacity: 1" />
+                    <stop offset="1" style="stop-color: #000000; stop-opacity: 1" />
+                </linearGradient>
+                <path
+                    style="fill: url(#LinearGradID_1)"
+                    d="M29.75,-36.85Q-17.75 -61.45 -42.05 -40.95L-45.35 -38.35L-53.7 -41.15L-51.15 -44.85Q-34.85 -68.4 21 -57.8Q-32.2 -72.1 -50.25 -50Q-53.85 -45.65 -56.05 -41.95L-64.7 -43.35L-60.6 -50.3Q-45.9 -75.55 5.1 -79.35Q-2.2 -79.8 -9.45 -79.15Q-16.2 -78.55 -22.85 -77.15Q-29.85 -75.65 -36.5 -73Q-43.05 -70.4 -48.8 -66.85Q-54.55 -63.35 -56.8 -60.3L-60.5 -55.4Q-62.95 -52.1 -67 -43.55L-70.55 -43.55L-76.35 -42.95Q-74.6 -49.1 -71.85 -54.85Q-68.9 -61.25 -64.8 -67.1Q-60.8 -73 -55.45 -77.55Q-49.9 -82.35 -43.65 -85.85L-30.6 -92.7Q-24.05 -95.95 -17 -98.25Q-63.75 -86.35 -73.65 -57.1Q-75.75 -50.75 -77.45 -42.75Q-82.9 -41.75 -88 -39.65Q-87.65 -46.65 -86.3 -53.05Q-79.8 -89.8 -36.65 -117.2Q-80.65 -94.5 -87.55 -59.55Q-88.65 -54.15 -88.95 -39.4L-89.8 -38.85L-92.7 -37.6Q-93.75 -44.35 -94.1 -51.15Q-94.4 -58.2 -93.25 -65.1Q-92.15 -72.5 -90.05 -79.65Q-88.05 -86.55 -85 -93Q-82.1 -99.3 -78.45 -105.15Q-74.6 -111.35 -70.25 -117.25Q-65.95 -123.1 -61.1 -128.55Q-70.3 -119.35 -77.9 -108.7Q-86 -97.3 -90.8 -84.05Q-95.8 -70.5 -96 -56.15Q-96.1 -46 -94.05 -36.05L-93.25 -31.55Q-93.5 -35.65 -92.35 -36Q-79.85 -42 -66.6 -40.45Q-52.45 -38.85 -39.2 -33.25Q-28.3 -29.9 -21.25 -24.15Q-17.8 -23.3 -8.6 -15.6Q-12.1 -20.75 -16.75 -24.5Q-24.55 -30.7 -34.25 -34.05L-42.55 -37Q-38.9 -41.25 -31.5 -43.25Q-24.05 -45.3 -16.2 -46.3Q-8.35 -47.35 -1 -46Q5.95 -44.75 12.75 -42.85Q19.85 -40.9 29.75 -36.85M-92.45,-27.35L-94.95 -36.25Q-109.7 -105 -27.95 -154.65Q-98.65 -103.8 -91.75 -39.4L-89.95 -40.2Q-92.2 -105.25 -5.6 -130.9Q-78.8 -99.95 -87.45 -40.9Q-83.15 -42.95 -78.45 -43.95Q-70 -101.3 17.65 -103.8Q-56.9 -93.4 -74.5 -44.55L-67.4 -45.45Q-49.1 -94.95 39.25 -75.65Q-36.75 -84.35 -62.25 -44.25L-57.3 -43.6Q-31.65 -86.5 56.15 -46.05Q-20.3 -73.35 -51.35 -41.7L-45.95 -39.75Q-17.85 -71.35 51.85 -24.8Q-8.7 -56.4 -39.75 -37.05Q-28.15 -34.05 -14.25 -24.45Q-8.6 -19.85 -5.8 -16.95Q5.95 -2.4 20 0Q5.95 2.4 -5.8 16.95Q-8.6 19.85 -14.25 24.45Q-28.15 34.05 -39.75 37.05Q-8.7 56.4 51.85 24.8Q-17.85 71.35 -45.95 39.75L-51.35 41.7Q-20.3 73.35 56.15 46.1Q-31.65 86.5 -57.3 43.65L-62.25 44.3Q-36.75 84.35 39.25 75.7Q-49.1 94.95 -67.4 45.5L-74.5 44.6Q-56.9 93.4 17.65 103.85Q-70 101.3 -78.45 43.95Q-83.15 42.95 -87.45 40.9Q-78.8 99.95 -5.6 130.9Q-92.2 105.25 -89.95 40.25L-91.75 39.4Q-98.65 103.8 -27.95 154.65Q-109.7 105 -94.95 36.3L-92.45 27.35Q-93.05 33.9 -92.05 34.75Q-91.1 35.55 -88.95 36.7L-87.95 37Q-83.7 38.25 -79.05 38.8L-77.25 38.95Q-72.55 39.3 -67.5 38.85L-65.45 38.65Q-44.4 36.05 -17.8 19.6Q-9.9 12.8 -15.15 4.4Q-18.15 3.15 -19 0Q-18.15 -3.15 -15.15 -4.4Q-9.9 -12.8 -17.8 -19.6L-17.8 -19.55Q-44.4 -36.05 -65.45 -38.6L-67.5 -38.8Q-72.55 -39.3 -77.25 -38.95L-79.05 -38.75Q-83.7 -38.25 -87.95 -36.95L-88.95 -36.65Q-91.1 -35.55 -92.05 -34.7Q-93.05 -33.9 -92.45 -27.35M-8.6,15.6Q-17.8 23.3 -21.25 24.2Q-28.3 29.9 -39.2 33.3Q-52.45 38.85 -66.6 40.5Q-79.85 42 -92.35 36Q-93.5 35.65 -93.25 31.55L-94.05 36.1Q-96.1 46.05 -96 56.15Q-95.8 70.5 -90.8 84.1Q-86 97.3 -77.9 108.75Q-70.3 119.35 -61.1 128.6Q-65.95 123.1 -70.25 117.25Q-74.6 111.35 -78.45 105.15Q-82.1 99.3 -85 93Q-88.05 86.55 -90.05 79.7Q-92.15 72.5 -93.25 65.1Q-94.4 58.2 -94.1 51.2Q-93.75 44.35 -92.7 37.6L-89.8 38.9L-88.95 39.45Q-88.65 54.15 -87.55 59.55Q-80.65 94.5 -36.65 117.25Q-79.8 89.8 -86.3 53.1Q-87.65 46.65 -88 39.65Q-82.9 41.75 -77.45 42.75Q-75.75 50.75 -73.65 57.15Q-63.75 86.35 -17 98.3Q-24.05 95.95 -30.6 92.75L-43.65 85.9Q-49.9 82.35 -55.45 77.6Q-60.8 73 -64.8 67.15Q-68.9 61.25 -71.85 54.85Q-74.6 49.1 -76.35 42.95L-70.55 43.6L-67 43.6Q-62.95 52.1 -60.5 55.4L-56.8 60.35Q-54.55 63.35 -48.8 66.9Q-43.05 70.4 -36.5 73Q-29.85 75.65 -22.85 77.15Q-16.2 78.55 -9.45 79.15Q-2.2 79.8 5.1 79.35Q-45.9 75.55 -60.6 50.3L-64.7 43.4L-56.05 41.95Q-53.85 45.65 -50.25 50Q-32.2 72.1 21 57.85Q-34.85 68.4 -51.15 44.85L-53.7 41.2L-45.35 38.35L-42.05 40.95Q-17.75 61.45 29.75 36.85Q19.85 40.9 12.75 42.9Q5.95 44.75 -1 46Q-8.35 47.35 -16.2 46.35Q-24.05 45.3 -31.5 43.3Q-38.9 41.25 -42.55 37.05L-34.25 34.05Q-24.55 30.7 -16.75 24.5Q-12.1 20.75 -8.6 15.6"
+                />
+            </g>
+            <g id="Espina" transform="matrix(1, 0, 0, 1, 0, 0)">
+                <linearGradient
+                    id="LinearGradID_2"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="matrix(0.0229492, 0, 0, -0.0152893, 0, 0.05)"
+                    spreadMethod="pad"
+                    x1="-819.2"
+                    y1="0"
+                    x2="819.2"
+                    y2="0"
+                >
+                    <stop offset="0" style="stop-color: #cccccc; stop-opacity: 1" />
+                    <stop offset="1" style="stop-color: #333333; stop-opacity: 1" />
+                </linearGradient>
+                <path
+                    style="fill: url(#LinearGradID_2)"
+                    d="M-18.8,0Q-17.85 -5.7 -12.3 -9.6Q-11.2 -5.35 -6.5 -8.25L-6.45 -8.2L-6.2 -8.3Q1.25 -16.25 6.65 -12.4Q0.05 -12.55 0 -5.95Q2.7 -2.4 7.75 -4.1Q18 -1.45 18.8 0L-18.8 0"
+                />
+                <linearGradient
+                    id="LinearGradID_3"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="matrix(0.0229492, 0, 0, 0.0152893, 0, -0.05)"
+                    spreadMethod="pad"
+                    x1="-819.2"
+                    y1="0"
+                    x2="819.2"
+                    y2="0"
+                >
+                    <stop offset="0" style="stop-color: #cccccc; stop-opacity: 1" />
+                    <stop offset="1" style="stop-color: #333333; stop-opacity: 1" />
+                </linearGradient>
+                <path
+                    style="fill: url(#LinearGradID_3)"
+                    d="M18.8,0Q18 1.45 7.75 4.1Q2.7 2.4 0 5.95Q0.05 12.55 6.65 12.4Q1.25 16.25 -6.2 8.35Q-6.35 8.25 -6.45 8.25L-6.5 8.25Q-11.2 5.35 -12.3 9.6Q-17.85 5.7 -18.8 0L18.8 0"
+                />
+            </g>
         </defs>
-        <circle cx="32" cy="32" r="30" fill="url(#ballGrad)"/>
-        <circle cx="32" cy="32" r="24" fill="#1b2a41"/>
-        <path d="M32 14 L36.5 26 L49 26 L39 33.5 L43 46 L32 38.5 L21 46 L25 33.5 L15 26 L27.5 26 Z" fill="#e8b93b"/>
-      </svg>
-      <div class="brand-text">
-        <div class="title">LIVE SCORE</div>
-        <div class="sub">3D · Match Center</div>
-      </div>
-    </div>
-    <div class="live-badge">
-      <span class="dot" id="liveDot"></span>
-      <span id="liveLabel">MEMUAT</span>
-    </div>
-  </div>
-
-  <div class="panel active" id="panel-score">
-
-    <div class="scoreboard" id="scoreboardTilt">
-      <div class="tournament-name" id="tournamentName">—</div>
-      <div class="team-row">
-        <div class="team team-a">
-          <div class="crest" id="crestA">A</div>
-          <div class="tname" id="nameA">Tim A</div>
-          <div class="tscore" id="scoreA">0</div>
-        </div>
-        <div class="team team-b">
-          <div class="crest" id="crestB">B</div>
-          <div class="tname" id="nameB">Tim B</div>
-          <div class="tscore" id="scoreB">0</div>
-        </div>
-      </div>
-      <div class="timer-row">
-        <div class="tlabel">Waktu Pertandingan</div>
-        <div class="tval" id="timer">00:00</div>
-      </div>
-    </div>
-
-    <div class="cheer-section">
-      <div class="cheer-head">
-        <span>📣 Sorak</span>
-        <span class="total" id="cheerTotal">0 sorak</span>
-      </div>
-      <div class="cheer-body">
-        <button class="cheer-btn2" onclick="cheer('👏','Tepuk')"><span class="em">👏</span>Tepuk</button>
-        <button class="cheer-btn2" onclick="cheer('🔥','Keren')"><span class="em">🔥</span>Keren</button>
-        <button class="cheer-btn2" onclick="cheer('⚽','Gol')"><span class="em">⚽</span>Gol</button>
-        <button class="cheer-btn2" onclick="cheer('💪','Semangat')"><span class="em">💪</span>Semangat</button>
-        <button class="cheer-btn2" onclick="cheer('🎉','Party')"><span class="em">🎉</span>Party</button>
-        <button class="cheer-btn2" onclick="cheer('❤️','Cinta')"><span class="em">❤️</span>Cinta</button>
-      </div>
-    </div>
-
-    <div class="live-chat">
-      <div class="live-chat-header">
-        <div class="ttl">💬 Komentar Live</div>
-        <div class="live-indicator">LIVE</div>
-      </div>
-      <div class="chat-list" id="chatList">
-        <div class="chat-empty">Belum ada komentar. Mulai ngobrol!</div>
-      </div>
-      <div class="chat-form">
-        <input type="text" class="msg-in" id="chatMsg" placeholder="Tulis komentar sebagai Anonymous..." maxlength="200" onkeydown="if(event.key==='Enter')sendChat()">
-        <button class="send-btn" onclick="sendChat()">➤</button>
-      </div>
-    </div>
-
-    <div class="footer">Made By <strong>Alfieno</strong></div>
-  </div>
-
-  <div class="panel" id="panel-game">
-    <div class="card-box">
-      <div class="card-title">🎮 Mini Game</div>
-      <div class="card-desc">Pilih game untuk mengisi waktu.</div>
-      <div class="game-tabs">
-        <div class="game-tab active" onclick="switchGame('tap', this)">👆 Tap</div>
-        <div class="game-tab" onclick="switchGame('parlay', this)">🎯 Parlay</div>
-        <div class="game-tab" onclick="switchGame('memory', this)">🧠 Memory</div>
-      </div>
-
-      <div class="game-panel active" id="game-tap">
-        <div class="game-stats">
-          <div class="game-stat"><div class="lbl">Skor</div><div class="val" id="gScore">0</div></div>
-          <div class="game-stat"><div class="lbl">Terbaik</div><div class="val" id="gBest">0</div></div>
-        </div>
-        <div class="tap-area" id="tapArea" onclick="tapGame()">
-          <div class="big" id="tapIcon">👆</div>
-          <div class="txt" id="tapText">Ketuk untuk mulai</div>
-        </div>
-        <div class="game-timeleft">Sisa waktu: <strong id="gTime">10.0</strong>s</div>
-        <button class="btn-reset-game" onclick="resetTapGame()">Reset Game</button>
-      </div>
-
-      <div class="game-panel" id="game-parlay">
-        <div class="card-desc" style="text-align:center">Tebak skor akhir. Dinilai saat pertandingan selesai.</div>
-        <div class="parlay-live-score">
-          <div class="lbl">Skor Saat Ini</div>
-          <div class="sc" id="parlayLiveScore">0 : 0</div>
-        </div>
-        <div class="parlay-form">
-          <input type="number" min="0" max="99" class="parlay-input" id="parlayA" placeholder="0">
-          <span class="parlay-vs">:</span>
-          <input type="number" min="0" max="99" class="parlay-input" id="parlayB" placeholder="0">
-        </div>
-        <button class="parlay-btn" id="parlayBtn" onclick="submitParlay()">Kirim Tebakan</button>
-        <div class="parlay-result" id="parlayResult"></div>
-        <div class="parlay-my" id="parlayMy"></div>
-      </div>
-
-      <div class="game-panel" id="game-memory">
-        <div class="game-stats">
-          <div class="game-stat"><div class="lbl">Langkah</div><div class="val" id="memMoves">0</div></div>
-          <div class="game-stat"><div class="lbl">Pasangan</div><div class="val" id="memPairs">0/8</div></div>
-        </div>
-        <div class="memory-grid" id="memoryGrid"></div>
-        <button class="btn-reset-game" onclick="initMemory()">Ulangi Game</button>
-      </div>
-    </div>
-    <div class="footer">Made By <strong>Alfieno</strong></div>
-  </div>
-
-  <div class="panel" id="panel-sound">
-    <div class="sound-box">
-      <div class="sound-row"><div><div class="lbl">Efek Suara</div><div class="sub">Bunyi saat sorak & klik</div></div><label class="switch"><input type="checkbox" id="toggleSound" checked><span class="slider-sw"></span></label></div>
-      <div class="sound-row"><div><div class="lbl">Suara Sorakan</div><div class="sub">Bunyi sorakan penonton</div></div><label class="switch"><input type="checkbox" id="toggleCheer" checked><span class="slider-sw"></span></label></div>
-      <div class="sound-row"><div><div class="lbl">Komentator</div><div class="sub">Suara saat skor berubah</div></div><label class="switch"><input type="checkbox" id="toggleCommentator" checked><span class="slider-sw"></span></label></div>
-      <div class="sound-row"><div><div class="lbl">Suara Chat</div><div class="sub">Bunyi saat komentar masuk</div></div><label class="switch"><input type="checkbox" id="toggleChat" checked><span class="slider-sw"></span></label></div>
-    </div>
-    <div class="card-box" style="margin-top:16px">
-      <div class="card-title">🎨 Mode Tampilan</div>
-      <div class="card-desc">Pilih tema yang kamu suka.</div>
-      <div class="theme-grid">
-        <div class="theme-card active" data-theme="light" onclick="setTheme('light')">
-          <div class="theme-preview light"></div>
-          <div class="tname">Terang</div>
-        </div>
-        <div class="theme-card" data-theme="dark" onclick="setTheme('dark')">
-          <div class="theme-preview dark"></div>
-          <div class="tname">Gelap</div>
-        </div>
-        <div class="theme-card" data-theme="neon" onclick="setTheme('neon')">
-          <div class="theme-preview neon"></div>
-          <div class="tname">Neon</div>
-        </div>
-      </div>
-    </div>
-    <div class="card-box" style="margin-top:16px">
-      <div class="card-title">⚡ Performa</div>
-      <div class="sound-row" style="border-bottom:none">
-        <div><div class="lbl">Mode Ringan</div><div class="sub">Matikan animasi berat jika ngelag</div></div>
-        <label class="switch"><input type="checkbox" id="toggleLite"><span class="slider-sw"></span></label>
-      </div>
-    </div>
-    <div class="footer">Made By <strong>Alfieno</strong></div>
-  </div>
-
-</div>
-
-<div class="bottom-nav">
-  <div class="nav-item active" onclick="switchPanel('score', this)"><span class="ico">🏆</span>Skor</div>
-  <div class="nav-item" onclick="switchPanel('game', this)"><span class="ico">🎮</span>Game</div>
-  <div class="nav-item" onclick="switchPanel('sound', this)"><span class="ico">🔊</span>Suara</div>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, onValue, push, set, query, limitToLast, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBz_-9_wGpxFvoOV7mjG-bo9R7cBDLPh1c",
-  authDomain: "lvsc-d619e.firebaseapp.com",
-  databaseURL: "https://lvsc-d619e-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "lvsc-d619e",
-  storageBucket: "lvsc-d619e.firebasestorage.app",
-  messagingSenderId: "1093402057198",
-  appId: "1:1093402057198:web:f1d07b2e435569120c16ff",
-  measurementId: "G-MYN6J1HLKD"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const scoreRef = ref(db, 'livescore');
-const chatRef = ref(db, 'chat');
-const parlayRef = ref(db, 'parlay');
-
-const ADMIN_ID = 'admin_fixed';
-
-/* ===== THEME ===== */
-const savedTheme = localStorage.getItem('theme') || 'light';
-document.body.className = 'theme-' + savedTheme;
-
-function setTheme(name) {
-  const lite = document.body.classList.contains('lite-mode');
-  document.body.className = 'theme-' + name + (lite ? ' lite-mode' : '');
-  localStorage.setItem('theme', name);
-  document.querySelectorAll('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === name));
-  Sound.click();
-  showToast('Mode ' + ({light:'Terang',dark:'Gelap',neon:'Neon'})[name] + ' aktif');
-}
-window.setTheme = setTheme;
-
-/* ===== LITE MODE ===== */
-const savedLite = localStorage.getItem('lite_mode') === '1';
-if (savedLite) {
-  document.body.classList.add('lite-mode');
-  document.getElementById('toggleLite').checked = true;
-}
-document.getElementById('toggleLite').addEventListener('change', e => {
-  document.body.classList.toggle('lite-mode', e.target.checked);
-  localStorage.setItem('lite_mode', e.target.checked ? '1' : '0');
-  showToast(e.target.checked ? 'Mode ringan aktif' : 'Mode ringan nonaktif');
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === savedTheme));
-});
-
-/* ===== LOADING ===== */
-window.addEventListener('load', () => {
-  setTimeout(() => document.getElementById('loading').classList.add('hide'), 2000);
-});
-
-/* ===== ELEMEN ===== */
-const el = {
-  tournamentName: document.getElementById('tournamentName'),
-  nameA: document.getElementById('nameA'),
-  nameB: document.getElementById('nameB'),
-  scoreA: document.getElementById('scoreA'),
-  scoreB: document.getElementById('scoreB'),
-  crestA: document.getElementById('crestA'),
-  crestB: document.getElementById('crestB'),
-  timer: document.getElementById('timer'),
-  liveDot: document.getElementById('liveDot'),
-  liveLabel: document.getElementById('liveLabel'),
-  banner: document.getElementById('commentatorBanner'),
-  toast: document.getElementById('toast')
-};
-
-/* ===== SUARA ===== */
-const Sound = {
-  ctx: null,
-  enabled: true, cheerEnabled: true, commentatorEnabled: true, chatEnabled: true,
-  init() {
-    if (!this.ctx) {
-      try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
-    }
-    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
-  },
-  beep(freq = 600, dur = 0.1, type = 'sine', vol = 0.15) {
-    if (!this.enabled || !this.ctx) return;
-    try {
-      const o = this.ctx.createOscillator();
-      const g = this.ctx.createGain();
-      o.type = type; o.frequency.value = freq; g.gain.value = vol;
-      o.connect(g).connect(this.ctx.destination);
-      o.start();
-      g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
-      o.stop(this.ctx.currentTime + dur);
-    } catch(e) {}
-  },
-  click() { this.beep(400, 0.06, 'square', 0.08); },
-  goal() {
-    if (!this.enabled) return;
-    [523,659,784,1046,1318].forEach((n,i) => setTimeout(() => this.beep(n, 0.18, 'sine', 0.13), i*90));
-  },
-  cheer() { if (!this.cheerEnabled) return; [523,659,784,1046].forEach((n,i) => setTimeout(() => this.beep(n, 0.15, 'sine', 0.1), i*80)); },
-  chatPing() { if (!this.chatEnabled) return; this.beep(880, 0.06, 'sine', 0.07); }
-};
-
-document.body.addEventListener('click', () => Sound.init(), { once: true });
-document.body.addEventListener('touchstart', () => Sound.init(), { once: true });
-
-/* ===== TTS ===== */
-const TTS = {
-  voice: null,
-  init() {
-    if (!('speechSynthesis' in window)) return;
-    const loadVoices = () => {
-      const voices = window.speechSynthesis.getVoices();
-      this.voice = voices.find(v => v.lang.toLowerCase().startsWith('id')) ||
-                   voices.find(v => v.lang.toLowerCase().startsWith('en')) || voices[0];
-    };
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-  },
-  speak(text) {
-    if (!Sound.commentatorEnabled) return;
-    if (!('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'id-ID';
-      if (this.voice) u.voice = this.voice;
-      u.rate = 1.0; u.pitch = 1.1; u.volume = 0.95;
-      window.speechSynthesis.speak(u);
-    } catch (e) {}
-  }
-};
-TTS.init();
-
-/* ===== TOAST ===== */
-let toastTimeout = null;
-function showToast(text, duration = 2200) {
-  el.toast.textContent = text;
-  el.toast.classList.add('show');
-  clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => el.toast.classList.remove('show'), duration);
-}
-window.showToast = showToast;
-
-/* ===== KOMENTATOR BANNER ===== */
-let bannerTimeout = null;
-function showBanner(text, duration = 4000) {
-  el.banner.textContent = '🎙 ' + text;
-  el.banner.classList.add('show');
-  clearTimeout(bannerTimeout);
-  bannerTimeout = setTimeout(() => el.banner.classList.remove('show'), duration);
-}
-
-/* ===== KOMENTATOR TEKS ===== */
-function buildCommentary(prevA, prevB, curA, curB, nameA, nameB) {
-  const nA = nameA || 'Tim A';
-  const nB = nameB || 'Tim B';
-  const scorer = (curA > prevA) ? nA : nB;
-  const scoreLine = `${curA} - ${curB}`;
-  const isDraw = curA === curB;
-  const curDiff = Math.abs(curA - curB);
-  const comeback = (prevA > prevB && curB > curA) || (prevB > prevA && curA > curB);
-
-  if (isDraw && curA === 0) return 'Skor kacamata 0 - 0.';
-  if (isDraw) {
-    if (prevA !== prevB) return `Tim ${scorer} menyamakan kedudukan! Skor ${scoreLine}!`;
-    return `Skor imbang ${scoreLine}! Pertandingan sengit!`;
-  }
-  if (curDiff === 1) {
-    if (comeback) return `Tim ${scorer} berbalik unggul! Skor ${scoreLine}!`;
-    return `Gol! Tim ${scorer} unggul ${scoreLine}!`;
-  }
-  if (curDiff === 2) return `Tim ${scorer} menambah keunggulan! Skor ${scoreLine}!`;
-  if (curDiff === 3) return `Tim ${scorer} semakin jauh unggul! Skor ${scoreLine}!`;
-  return `Pesta gol! Tim ${scorer} unggul telak ${scoreLine}!`;
-}
-
-/* ===== UTIL ===== */
-function setCrest(e, name) {
-  const n = (name || '').trim();
-  e.textContent = n ? n.charAt(0).toUpperCase() : '?';
-}
-function fmtTime(sec) {
-  const s = parseInt(sec) || 0;
-  return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
-}
-
-let lastScores = { a: -1, b: -1 };
-let currentData = { scoreA: 0, scoreB: 0, matchStatus: 'live', nameA: '', nameB: '' };
-let cheerCount = 0;
-
-/* ===== LISTEN DATA ===== */
-onValue(scoreRef, (snapshot) => {
-  const d = snapshot.val();
-  if (!d) {
-    el.liveDot.className = 'dot off';
-    el.liveLabel.textContent = 'OFFLINE';
-    return;
-  }
-
-  currentData = d;
-  const oldA = lastScores.a;
-  const oldB = lastScores.b;
-
-  el.tournamentName.textContent = d.tournament || 'Pertandingan';
-  el.nameA.textContent = d.nameA || 'Tim A';
-  el.nameB.textContent = d.nameB || 'Tim B';
-  setCrest(el.crestA, d.nameA);
-  setCrest(el.crestB, d.nameB);
-  el.scoreA.textContent = d.scoreA || 0;
-  el.scoreB.textContent = d.scoreB || 0;
-  el.timer.textContent = fmtTime(d.seconds);
-  document.getElementById('parlayLiveScore').textContent = (d.scoreA||0) + ' : ' + (d.scoreB||0);
-
-  if (d.matchStatus === 'finished') {
-    el.liveDot.className = 'dot finished';
-    el.liveLabel.textContent = 'SELESAI';
-  } else {
-    el.liveDot.className = 'dot';
-    el.liveLabel.textContent = 'LIVE';
-  }
-
-  if (oldA !== -1) {
-    const newA = d.scoreA || 0;
-    const newB = d.scoreB || 0;
-    if (newA > oldA || newB > oldB) {
-      const scoringTeam = newA > oldA ? el.scoreA : el.scoreB;
-      goalAnimation(scoringTeam);
-      if (!document.body.classList.contains('lite-mode')) {
-        celebrateConfetti();
-      }
-      const text = buildCommentary(oldA, oldB, newA, newB, d.nameA, d.nameB);
-      showBanner(text, 4500);
-      setTimeout(() => TTS.speak(text), 800);
-    }
-  }
-
-  lastScores.a = d.scoreA || 0;
-  lastScores.b = d.scoreB || 0;
-  renderParlayState();
-}, () => {
-  el.liveDot.className = 'dot off';
-  el.liveLabel.textContent = 'OFFLINE';
-});
-
-/* ===== ANIMASI GOAL ===== */
-function goalAnimation(scoreEl) {
-  scoreEl.classList.add('pop');
-  setTimeout(() => scoreEl.classList.remove('pop'), 400);
-  Sound.goal();
-
-  const rect = scoreEl.getBoundingClientRect();
-  const targetX = rect.left + rect.width/2;
-  const targetY = rect.top + rect.height/2;
-
-  // Bola terbang (CSS transition, bukan animation frame)
-  const ball = document.createElement('div');
-  ball.className = 'ball-fly';
-  ball.textContent = '⚽';
-  ball.style.left = targetX + 'px';
-  ball.style.top = window.innerHeight + 'px';
-  ball.style.transform = 'translate(-50%, -50%) scale(1)';
-  ball.style.opacity = '1';
-  document.body.appendChild(ball);
-
-  // Force reflow
-  ball.getBoundingClientRect();
-
-  ball.style.transition = 'transform 0.6s cubic-bezier(.3,.9,.4,1), opacity 0.6s';
-  ball.style.transform = `translate(-50%, -50%) translateY(-${window.innerHeight - targetY}px) scale(0.6)`;
-  ball.style.opacity = '0.3';
-
-  setTimeout(() => {
-    ball.remove();
-    burstParticles(targetX, targetY);
-  }, 620);
-}
-
-function burstParticles(x, y) {
-  if (document.body.classList.contains('lite-mode')) return;
-  const emojis = ['⚽','✨','⭐','🎉','💥'];
-  for (let i = 0; i < 12; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.textContent = emojis[i % emojis.length];
-    p.style.left = x + 'px';
-    p.style.top = y + 'px';
-    const angle = (Math.PI * 2 * i) / 12 + (Math.random() * 0.5);
-    const dist = 60 + Math.random() * 100;
-    p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
-    p.style.setProperty('--dy', Math.sin(angle) * dist - 30 + 'px');
-    p.style.animationDelay = (Math.random() * 0.1) + 's';
-    document.body.appendChild(p);
-    setTimeout(() => p.remove(), 1000);
-  }
-}
-
-function celebrateConfetti() {
-  if (document.body.classList.contains('lite-mode')) return;
-  const colors = ['#e8b93b','#00ffaa','#00d4ff','#ff3366','#ffaa00','#a855f7'];
-  for (let i = 0; i < 24; i++) {
-    setTimeout(() => {
-      const c = document.createElement('div');
-      c.className = 'confetti';
-      c.style.left = (Math.random() * 100) + 'vw';
-      c.style.top = '-20px';
-      c.style.background = colors[Math.floor(Math.random()*colors.length)];
-      c.style.animationDuration = (1.5 + Math.random() * 1.2) + 's';
-      c.style.animationDelay = (Math.random() * 0.3) + 's';
-      document.body.appendChild(c);
-      setTimeout(() => c.remove(), 3200);
-    }, i * 40);
-  }
-}
-
-/* ===== TILT KARTU SKOR ===== */
-const scoreboardTilt = document.getElementById('scoreboardTilt');
-if (scoreboardTilt && window.matchMedia('(hover: hover)').matches) {
-  let tiltTimeout = null;
-  scoreboardTilt.addEventListener('mousemove', (e) => {
-    if (document.body.classList.contains('lite-mode')) return;
-    if (tiltTimeout) return;
-    tiltTimeout = setTimeout(() => {
-      const r = scoreboardTilt.getBoundingClientRect();
-      const cx = r.left + r.width/2;
-      const cy = r.top + r.height/2;
-      const dx = (e.clientX - cx) / (r.width/2);
-      const dy = (e.clientY - cy) / (r.height/2);
-      scoreboardTilt.style.transform = `rotateY(${dx * 4}deg) rotateX(${-dy * 4}deg)`;
-      tiltTimeout = null;
-    }, 16);
-  });
-  scoreboardTilt.addEventListener('mouseleave', () => {
-    scoreboardTilt.style.transform = '';
-  });
-}
-
-/* ===== PANEL SWITCH ===== */
-function switchPanel(name, elem) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-' + name).classList.add('active');
-  document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
-  elem.classList.add('active');
-  Sound.click();
-}
-window.switchPanel = switchPanel;
-
-/* ===== SORAK — FIXED ===== */
-function cheer(emoji, label) {
-  Sound.init();
-  Sound.cheer();
-  cheerCount++;
-  document.getElementById('cheerTotal').textContent = cheerCount + ' sorak';
-
-  const lite = document.body.classList.contains('lite-mode');
-  const count = lite ? 3 : 6;
-
-  // Emoji terbang dari sekitar tombol
-  for (let i = 0; i < count; i++) {
-    setTimeout(() => {
-      const span = document.createElement('span');
-      span.className = 'emoji-float';
-      span.textContent = emoji;
-      // Posisi pixel pasti
-      const startX = window.innerWidth * (0.2 + Math.random() * 0.6);
-      const startY = window.innerHeight - 100;
-      span.style.left = startX + 'px';
-      span.style.top = startY + 'px';
-      span.style.animationDelay = '0s';
-      document.body.appendChild(span);
-      setTimeout(() => span.remove(), 1400);
-    }, i * 70);
-  }
-
-  showToast(emoji + ' ' + label + '!');
-}
-window.cheer = cheer;
-
-/* ===== GAME TABS ===== */
-function switchGame(name, elem) {
-  document.querySelectorAll('.game-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('game-' + name).classList.add('active');
-  document.querySelectorAll('.game-tab').forEach(t => t.classList.remove('active'));
-  elem.classList.add('active');
-  Sound.click();
-  if (name === 'memory' && !memoryInitialized) initMemory();
-}
-window.switchGame = switchGame;
-
-/* ===== TAP GAME ===== */
-let gRunning = false, gScore = 0, gTime = 10.0, gInterval = null;
-let gBest = parseInt(localStorage.getItem('tap_best') || '0');
-document.getElementById('gBest').textContent = gBest;
-const tapArea = document.getElementById('tapArea');
-const tapIcon = document.getElementById('tapIcon');
-const tapText = document.getElementById('tapText');
-const gScoreEl = document.getElementById('gScore');
-const gTimeEl = document.getElementById('gTime');
-
-function tapGame() {
-  Sound.init();
-  if (!gRunning) { startTapGame(); return; }
-  gScore++;
-  gScoreEl.textContent = gScore;
-  Sound.beep(600 + Math.min(gScore * 8, 600), 0.04, 'square', 0.06);
-  tapIcon.style.transform = 'scale(1.4)';
-  setTimeout(() => tapIcon.style.transform = 'scale(1)', 80);
-}
-function startTapGame() {
-  gRunning = true; gScore = 0; gTime = 10.0;
-  gScoreEl.textContent = '0'; gTimeEl.textContent = '10.0';
-  tapIcon.textContent = '🔥'; tapText.textContent = 'TAP CEPAT!';
-  tapArea.style.background = 'rgba(232,185,59,0.2)';
-  clearInterval(gInterval);
-  gInterval = setInterval(() => {
-    gTime -= 0.1;
-    if (gTime <= 0) endTapGame();
-    else gTimeEl.textContent = gTime.toFixed(1);
-  }, 100);
-}
-function endTapGame() {
-  clearInterval(gInterval); gRunning = false;
-  gTimeEl.textContent = '0.0';
-  tapIcon.textContent = '🏁'; tapText.textContent = 'Selesai! Tap untuk main lagi';
-  tapArea.style.background = '';
-  if (gScore > gBest) { gBest = gScore; localStorage.setItem('tap_best', gBest); document.getElementById('gBest').textContent = gBest; }
-  Sound.beep(523, 0.1);
-  setTimeout(() => Sound.beep(659, 0.1), 120);
-  setTimeout(() => Sound.beep(784, 0.2), 240);
-  showToast('Skor: ' + gScore + ' | Terbaik: ' + gBest);
-}
-function resetTapGame() {
-  clearInterval(gInterval); gRunning = false; gScore = 0; gTime = 10.0;
-  gScoreEl.textContent = '0'; gTimeEl.textContent = '10.0';
-  tapIcon.textContent = '👆'; tapText.textContent = 'Ketuk untuk mulai';
-  tapArea.style.background = ''; Sound.click();
-}
-window.tapGame = tapGame;
-window.resetTapGame = resetTapGame;
-
-/* ===== PARLAY ===== */
-let myId = localStorage.getItem('chat_id');
-if (!myId) {
-  myId = 'u_' + Math.random().toString(36).slice(2, 9);
-  localStorage.setItem('chat_id', myId);
-}
-let myParlayKey = null;
-let parlayData = null;
-
-onValue(parlayRef, (snapshot) => {
-  parlayData = snapshot.val();
-  renderParlayState();
-});
-
-function renderParlayState() {
-  const btn = document.getElementById('parlayBtn');
-  const result = document.getElementById('parlayResult');
-  const myInfo = document.getElementById('parlayMy');
-
-  if (!currentData || currentData.matchStatus === 'finished') {
-    btn.disabled = true;
-    btn.textContent = 'Pertandingan Selesai';
-    const myP = findMyParlay();
-    if (myP) {
-      const sA = currentData.scoreA || 0;
-      const sB = currentData.scoreB || 0;
-      const isWin = (parseInt(myP.guessA) === sA) && (parseInt(myP.guessB) === sB);
-      if (isWin) {
-        result.className = 'parlay-result show win';
-        result.innerHTML = '🏆 <strong>MENANG!</strong><br>Tebakan: ' + myP.guessA + ' : ' + myP.guessB + '<br>Skor final: ' + sA + ' : ' + sB;
-        Sound.goal();
-      } else {
-        result.className = 'parlay-result show lose';
-        result.innerHTML = '❌ <strong>KALAH</strong><br>Tebakan: ' + myP.guessA + ' : ' + myP.guessB + '<br>Skor final: ' + sA + ' : ' + sB;
-      }
-      myInfo.textContent = 'Tebakan tersimpan.';
-    } else {
-      result.className = 'parlay-result show wait';
-      result.textContent = 'Pertandingan selesai. Kamu tidak submit tebakan.';
-      myInfo.textContent = '';
-    }
-    document.getElementById('parlayA').disabled = true;
-    document.getElementById('parlayB').disabled = true;
-    return;
-  }
-
-  btn.disabled = false;
-  btn.textContent = findMyParlay() ? 'Ubah Tebakan' : 'Kirim Tebakan';
-  document.getElementById('parlayA').disabled = false;
-  document.getElementById('parlayB').disabled = false;
-
-  const myP = findMyParlay();
-  if (myP) {
-    document.getElementById('parlayA').value = myP.guessA;
-    document.getElementById('parlayB').value = myP.guessB;
-    myInfo.innerHTML = 'Tebakan kamu: <strong>' + myP.guessA + ' : ' + myP.guessB + '</strong>';
-    result.className = 'parlay-result show wait';
-    result.textContent = 'Tebakan tersimpan. Hasil muncul saat pertandingan selesai.';
-  } else {
-    myInfo.textContent = 'Belum submit tebakan.';
-    result.className = 'parlay-result';
-    result.textContent = '';
-  }
-}
-
-function findMyParlay() {
-  if (!parlayData) return null;
-  for (const key in parlayData) {
-    if (parlayData[key].uid === myId) {
-      myParlayKey = key;
-      return parlayData[key];
-    }
-  }
-  return null;
-}
-
-function submitParlay() {
-  if (!currentData || currentData.matchStatus === 'finished') {
-    showToast('Pertandingan sudah selesai');
-    return;
-  }
-  const a = parseInt(document.getElementById('parlayA').value);
-  const b = parseInt(document.getElementById('parlayB').value);
-  if (isNaN(a) || isNaN(b) || a < 0 || b < 0) {
-    showToast('Masukkan angka untuk kedua tim');
-    return;
-  }
-  const existing = findMyParlay();
-  const data = { name: 'Anonymous', uid: myId, guessA: a, guessB: b, time: Date.now() };
-  const done = () => {
-    Sound.beep(720, 0.08, 'sine', 0.08);
-    showToast('Tebakan tersimpan: ' + a + ' : ' + b);
-  };
-  if (existing && myParlayKey) {
-    set(ref(db, 'parlay/' + myParlayKey), data).then(done).catch(err => showToast('Gagal: ' + err.message));
-  } else {
-    push(parlayRef, data).then(done).catch(err => showToast('Gagal: ' + err.message));
-  }
-}
-window.submitParlay = submitParlay;
-
-/* ===== MEMORY ===== */
-let memoryInitialized = false;
-let memFirst = null, memSecond = null, memLock = false, memMoves = 0, memPairs = 0;
-const memIcons = ['⚽','🏀','🎾','🏐','🏈','🎱','🏓','🥊'];
-
-function initMemory() {
-  memoryInitialized = true;
-  const grid = document.getElementById('memoryGrid');
-  grid.innerHTML = '';
-  memFirst = memSecond = null; memLock = false; memMoves = 0; memPairs = 0;
-  document.getElementById('memMoves').textContent = '0';
-  document.getElementById('memPairs').textContent = '0/8';
-  const deck = [...memIcons, ...memIcons].sort(() => Math.random() - 0.5);
-  deck.forEach(icon => {
-    const card = document.createElement('div');
-    card.className = 'mem-card';
-    card.dataset.icon = icon;
-    card.textContent = '?';
-    card.addEventListener('click', () => flipMemory(card));
-    grid.appendChild(card);
-  });
-}
-
-function flipMemory(card) {
-  if (memLock) return;
-  if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
-  Sound.beep(700, 0.05, 'sine', 0.06);
-  card.classList.add('flipped');
-  card.textContent = card.dataset.icon;
-  if (!memFirst) { memFirst = card; return; }
-  memSecond = card;
-  memMoves++;
-  document.getElementById('memMoves').textContent = memMoves;
-  memLock = true;
-  if (memFirst.dataset.icon === memSecond.dataset.icon) {
-    setTimeout(() => {
-      memFirst.classList.add('matched');
-      memSecond.classList.add('matched');
-      Sound.beep(900, 0.1, 'triangle', 0.1);
-      memPairs++;
-      document.getElementById('memPairs').textContent = memPairs + '/8';
-      if (memPairs === 8) {
-        setTimeout(() => {
-          Sound.goal();
-          showToast('🎉 Selesai dalam ' + memMoves + ' langkah!');
-        }, 400);
-      }
-      resetMemPick();
-    }, 400);
-  } else {
-    setTimeout(() => {
-      memFirst.classList.remove('flipped');
-      memSecond.classList.remove('flipped');
-      memFirst.textContent = '?';
-      memSecond.textContent = '?';
-      Sound.beep(250, 0.12, 'sawtooth', 0.08);
-      resetMemPick();
-    }, 800);
-  }
-}
-function resetMemPick() { memFirst = memSecond = null; memLock = false; }
-window.initMemory = initMemory;
-
-/* ===== CHAT ===== */
-const chatList = document.getElementById('chatList');
-const chatMsg = document.getElementById('chatMsg');
-let chatFirstLoad = true;
-
-function sendChat() {
-  const text = chatMsg.value.trim();
-  if (!text) return;
-  push(chatRef, {
-    name: 'Anonymous',
-    text: text.slice(0, 200),
-    uid: myId,
-    time: serverTimestamp()
-  }).then(() => {
-    chatMsg.value = '';
-    chatMsg.focus();
-    Sound.beep(720, 0.06, 'sine', 0.07);
-  }).catch((err) => {
-    showToast('Gagal kirim: ' + err.message);
-  });
-}
-window.sendChat = sendChat;
-
-const chatQuery = query(chatRef, limitToLast(40));
-onValue(chatQuery, (snapshot) => {
-  const data = snapshot.val();
-  chatList.innerHTML = '';
-  if (!data) {
-    chatList.innerHTML = '<div class="chat-empty">Belum ada komentar. Mulai ngobrol!</div>';
-    chatFirstLoad = false;
-    return;
-  }
-  const msgs = Object.entries(data).map(([k,v]) => ({...v, id: k})).sort((a,b) => (a.time||0) - (b.time||0));
-  const wasNearBottom = chatList.scrollHeight - chatList.scrollTop - chatList.clientHeight < 60;
-  const lastCount = chatList.dataset.lastCount ? parseInt(chatList.dataset.lastCount) : 0;
-  msgs.forEach(msg => {
-    const div = document.createElement('div');
-    const isAdmin = msg.uid === ADMIN_ID;
-    const isMine = msg.uid === myId;
-    div.className = 'chat-item' + (isAdmin ? ' is-admin' : '') + (isMine ? ' mine' : '');
-    const time = msg.time ? new Date(msg.time).toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'}) : '';
-    div.innerHTML = `
-      <span class="uname">${escapeHtml(msg.name||'Anonymous')}:</span>
-      <span class="utext">${escapeHtml(msg.text)}</span>
-      <span class="utime">${time}</span>
-    `;
-    chatList.appendChild(div);
-  });
-  if (chatFirstLoad || wasNearBottom) chatList.scrollTop = chatList.scrollHeight;
-  if (!chatFirstLoad && msgs.length > lastCount) {
-    const newest = msgs[msgs.length - 1];
-    if (newest.uid !== myId) Sound.chatPing();
-  }
-  chatList.dataset.lastCount = msgs.length;
-  chatFirstLoad = false;
-}, () => {
-  chatList.innerHTML = '<div class="chat-empty">Gagal memuat chat.</div>';
-});
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-}
-
-/* ===== TOGGLE ===== */
-document.getElementById('toggleSound').addEventListener('change', e => { Sound.enabled = e.target.checked; });
-document.getElementById('toggleCheer').addEventListener('change', e => { Sound.cheerEnabled = e.target.checked; });
-document.getElementById('toggleCommentator').addEventListener('change', e => {
-  Sound.commentatorEnabled = e.target.checked;
-  if (!e.target.checked && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-});
-document.getElementById('toggleChat').addEventListener('change', e => { Sound.chatEnabled = e.target.checked; });
-</script>
+        <g id="screen" />
+    </svg>
+    <script>
+        "use strict";
+
+        const screen = document.getElementById("screen");
+        const xmlns = "http://www.w3.org/2000/svg";
+        const xlinkns = "http://www.w3.org/1999/xlink";
+
+        window.addEventListener(
+            "pointermove",
+            (e) => {
+                pointer.x = e.clientX;
+                pointer.y = e.clientY;
+                rad = 0;
+            },
+            false
+        );
+
+        const resize = () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+        };
+
+        let width, height;
+        window.addEventListener("resize", () => resize(), false);
+        resize();
+
+        const prepend = (use, i) => {
+            const elem = document.createElementNS(xmlns, "use");
+            elems[i].use = elem;
+            elem.setAttributeNS(xlinkns, "xlink:href", "#" + use);
+            screen.prepend(elem);
+        };
+
+        const N = 40;
+
+        const elems = [];
+        for (let i = 0; i < N; i++) elems[i] = { use: null, x: width / 2, y: 0 };
+        const pointer = { x: width / 2, y: height / 2 };
+        const radm = Math.min(pointer.x, pointer.y) - 20;
+        let frm = Math.random();
+        let rad = 0;
+
+        for (let i = 1; i < N; i++) {
+            if (i === 1) prepend("Cabeza", i);
+            else if (i === 8 || i === 14) prepend("Aletas", i);
+            else prepend("Espina", i);
+        }
+
+        const run = () => {
+            requestAnimationFrame(run);
+            let e = elems[0];
+            const ax = (Math.cos(3 * frm) * rad * width) / height;
+            const ay = (Math.sin(4 * frm) * rad * height) / width;
+            e.x += (ax + pointer.x - e.x) / 10;
+            e.y += (ay + pointer.y - e.y) / 10;
+            for (let i = 1; i < N; i++) {
+                let e = elems[i];
+                let ep = elems[i - 1];
+                const a = Math.atan2(e.y - ep.y, e.x - ep.x);
+                e.x += (ep.x - e.x + (Math.cos(a) * (100 - i)) / 5) / 4;
+                e.y += (ep.y - e.y + (Math.sin(a) * (100 - i)) / 5) / 4;
+                const s = (162 + 4 * (1 - i)) / 50;
+                e.use.setAttributeNS(
+                    null,
+                    "transform",
+                    `translate(${(ep.x + e.x) / 2},${(ep.y + e.y) / 2}) rotate(${
+                        (180 / Math.PI) * a
+                    }) translate(${0},${0}) scale(${s},${s})`
+                );
+            }
+            if (rad < radm) rad++;
+            frm += 0.003;
+            if (rad > 60) {
+                pointer.x += (width / 2 - pointer.x) * 0.05;
+                pointer.y += (height / 2 - pointer.y) * 0.05;
+            }
+        };
+
+        run();
+    </script>
 </body>
 </html>
