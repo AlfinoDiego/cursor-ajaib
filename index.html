@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Custom Draggable Animated Cursor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #000000;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+            cursor: none;
+        }
+        
+        #custom-cursor {
+            position: absolute;
+            width: 64px;
+            height: 64px;
+            background: url('https://h.uguu.se/XNuHAlOj.gif') center/cover no-repeat;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="custom-cursor"></div>
+    <div class="instructions">Seret atau sentuh untuk menggerakkan kursor animasi</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cursor = document.getElementById('custom-cursor');
+            let isDragging = false;
+            
+            // Fungsi untuk menggerakkan kursor
+            function moveCursor(x, y) {
+                cursor.style.left = x + 'px';
+                cursor.style.top = y + 'px';
+            }
+            
+            // Event listener untuk desktop (mouse)
+            document.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                moveCursor(e.clientX, e.clientY);
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    moveCursor(e.clientX, e.clientY);
+                }
+            });
+            
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+            });
+            
+            // Event listener untuk perangkat sentuh (Android/iOS)
+            document.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                isDragging = true;
+                const touch = e.touches[0];
+                moveCursor(touch.clientX, touch.clientY);
+            }, { passive: false });
+            
+            document.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                if (isDragging) {
+                    const touch = e.touches[0];
+                    moveCursor(touch.clientX, touch.clientY);
+                }
+            }, { passive: false });
+            
+            document.addEventListener('touchend', function(e) {
+                isDragging = false;
+            });
+            
+            // Inisialisasi posisi kursor di tengah layar
+            moveCursor(window.innerWidth / 2, window.innerHeight / 2);
+            
+            // Memastikan kursor tetap di dalam viewport saat resize
+            window.addEventListener('resize', function() {
+                const x = Math.min(parseInt(cursor.style.left), window.innerWidth);
+                const y = Math.min(parseInt(cursor.style.top), window.innerHeight);
+                moveCursor(x, y);
+            });
+        });
+    </script>
+</body>
+</html>
